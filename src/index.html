@@ -12,22 +12,30 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.green.min.css"
     />
+
+    <!-- SCRIPTS -->
+    <script src="./scripts/index.js"></script>
+    <script src="./scripts/helpers/validation.js"></script>
+    <script src="./scripts/utils/validators.js"></script>
   </head>
 
   <body>
     <main class="container">
       <h1>Connexion</h1>
 
-      <form action="">
+      <form action="" onsubmit="handleSubmitLoginForm(event)">
         <div class="form-group">
           <label for="email">Email</label>
           <input
             required
             type="email"
+            data-validation="required;email"
             id="email"
             name="email"
             class="form-control"
+            aria-describedby="email-helper"
           />
+          <small id="email-helper"></small>
         </div>
 
         <div class="form-group">
@@ -35,10 +43,13 @@
           <input
             required
             type="password"
+            data-validation="required;password"
             id="password"
             name="password"
             class="form-control"
+            aria-describedby="password-helper"
           />
+          <small id="password-helper"></small>
         </div>
 
         <button type="submit">Se connecter</button>
