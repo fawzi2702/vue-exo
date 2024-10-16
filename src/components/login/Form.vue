@@ -1,32 +1,26 @@
 <template>
   <form action="" @submit.prevent="onSubmit">
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input
-        required
-        type="email"
-        data-validation="required;email"
-        id="email"
-        name="email"
-        class="form-control"
-        aria-describedby="email-helper"
-      />
-      <small id="email-helper"></small>
-    </div>
+    <BasicInput
+      label="Email"
+      type="email"
+      name="email"
+      id="email"
+      data-validation="required;email"
+      autocomplete="email"
+      :invalid="!!formValidation?.errors?.email?.length"
+      :helper="formValidation?.errors?.email"
+    />
 
-    <div class="form-group">
-      <label for="password">Mot de passe</label>
-      <input
-        required
-        type="password"
-        data-validation="required;password"
-        id="password"
-        name="password"
-        class="form-control"
-        aria-describedby="password-helper"
-      />
-      <small id="password-helper"></small>
-    </div>
+    <BasicInput
+      label="Mot de passe"
+      type="password"
+      name="password"
+      id="password"
+      data-validation="required;password"
+      autocomplete="current-password"
+      :invalid="!!formValidation?.errors?.password?.length"
+      :helper="formValidation?.errors?.password"
+    />
 
     <button type="submit">Se connecter</button>
   </form>
@@ -34,19 +28,19 @@
 
 <script setup lang="ts">
 import { loginMockApi } from '@/helpers/mocks/login'
-import validateForm from '@/helpers/validation'
+import validateForm, { type ValidationResult } from '@/helpers/validation'
 import formFieldValidators from '@/utils/validators'
+import BasicInput from '@/components/form/BasicInput.vue'
+import { ref } from 'vue'
 
-const postLoginForm = async (formData: FormData) => {
-  const response = loginMockApi(formData)
+const formValidation = ref<ValidationResult | null>(null)
 
-  return response
-}
+const postLoginForm = async (formData: FormData) => loginMockApi(formData)
 
-const handleSubmitLoginForm = (event: Event) => {
-  const form = event.target as HTMLFormElement
-
+const handleSubmitLoginForm = (form: HTMLFormElement) => {
   const validationResult = validateForm(form, formFieldValidators)
+
+  formValidation.value = validationResult
   if (!validationResult.isValid) {
     console.warn('Login Form is invalid', validationResult.errors)
     return
@@ -60,6 +54,6 @@ const handleSubmitLoginForm = (event: Event) => {
 }
 
 const onSubmit = (event: Event) => {
-  handleSubmitLoginForm(event)
+  handleSubmitLoginForm(event.target as HTMLFormElement)
 }
 </script>

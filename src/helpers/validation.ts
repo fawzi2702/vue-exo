@@ -1,10 +1,13 @@
 const VALIDATION_ATTRIBUTE = 'data-validation'
 const VALIDATION_SEPARATOR = ';'
-const VALIDATION_ERROR_CONTAINER_ATTRIBUTE = 'aria-describedby'
-const VALIDATION_FIELD_INVALID_ATTRIBUTE = 'aria-invalid'
 
+export type ValidationType = 'email' | 'password' | 'required'
 export type FieldValidator = [Function, string]
-export type FormFieldValidator = Record<string, Array<FieldValidator>>
+export type FormFieldValidator = Record<ValidationType, Array<FieldValidator>>
+export type ValidationResult = {
+  isValid: boolean
+  errors: Record<string, string[]>
+}
 
 const getFieldValidator = (
   field: HTMLFormElement,
@@ -13,17 +16,22 @@ const getFieldValidator = (
   const { name = 'unknown' } = field
 
   const validationAttribute = field.getAttribute(VALIDATION_ATTRIBUTE) || ''
-  const validatorsNames = validationAttribute.split(VALIDATION_SEPARATOR)
+  const validatorsNames = validationAttribute.split(
+    VALIDATION_SEPARATOR,
+  ) as ValidationType[]
 
-  return validatorsNames.reduce((acc: FieldValidator[], validatorName) => {
-    const validator = validators[validatorName]
+  return validatorsNames.reduce(
+    (acc: FieldValidator[], validatorName: ValidationType) => {
+      const validator = validators[validatorName]
 
-    if (!validator) {
-      console.warn(`Validator ${validatorName} not found for field ${name}`)
-    }
+      if (!validator) {
+        console.warn(`Validator ${validatorName} not found for field ${name}`)
+      }
 
-    return acc.concat(validator)
-  }, [])
+      return acc.concat(validator)
+    },
+    [],
+  )
 }
 
 const validateValue = (
@@ -52,38 +60,6 @@ const validateField = (
   return errors
 }
 
-const setFieldValidationState = (field: HTMLFormElement, isValid: boolean) => {
-  field.setAttribute(VALIDATION_FIELD_INVALID_ATTRIBUTE, String(!isValid))
-}
-
-const setFieldErrorMessages = (field: HTMLFormElement, errors: string[]) => {
-  const errorContainerId = field.getAttribute(
-    VALIDATION_ERROR_CONTAINER_ATTRIBUTE,
-  )
-
-  if (!errorContainerId) {
-    return
-  }
-  const errorContainer = document.getElementById(errorContainerId)
-
-  if (!errorContainer) {
-    console.warn('Error container not found')
-    return
-  }
-
-  if (errors.length) {
-    errorContainer.innerHTML = errors.join('<br>')
-  } else {
-    errorContainer.innerHTML = ''
-  }
-}
-
-const displayFieldErrors = (field: HTMLFormElement, errors: string[]) => {
-  setFieldValidationState(field, !errors.length)
-
-  setFieldErrorMessages(field, errors)
-}
-
 const validateForm = (
   form: HTMLFormElement,
   validators: FormFieldValidator,
@@ -105,8 +81,6 @@ const validateForm = (
       const fieldValidators = getFieldValidator(field, validators)
 
       const errors = validateField(field, fieldValidators)
-
-      displayFieldErrors(field, errors)
 
       if (errors.length) {
         validationResult.isValid = false
